@@ -31,12 +31,12 @@ function Gameboard() {
     // If no cells make it through the filter, 
     // the move is invalid. Stop execution.
         if (board[row][column].getValue() !== 0) {
-            console.log("ERROR: Cell is not empty.")
-            return
-        };
+            return false;
+        }
 
     // Otherwise, I have a valid cell
         board[row][column].addToken(player);
+        return true;
     };
 
     // This method will be used to print our board to the console.
@@ -47,9 +47,18 @@ function Gameboard() {
         console.log(boardWithCellValues);
     };
 
+        const resetBoard = () => {
+        for (let i = 0; i < rows; i++) {
+            for (let j = 0; j < columns; j++) {
+                board[i][j].reset();
+            }
+        }
+    };
+
+
     // Here, we provide an interface for the rest of our
     // application to interact with the board
-    return { getBoard, placeToken, printBoard };
+    return { getBoard, placeToken, printBoard, resetBoard };
 }
 
 /*
@@ -70,20 +79,23 @@ function Cell() {
     // How we will retrieve the current value of this cell through closure
     const getValue = () => value;
 
+    const reset = () => {
+    value = 0;
+    };
+
     return {
         addToken,
-        getValue
+        getValue,
+        reset
     };
 }
 
-/* 
-** The GameController will be responsible for controlling the 
+/* The GameController will be responsible for controlling the 
 ** flow and state of the game's turns, as well as whether
-** anybody has won the game
-*/
+** anybody has won the game */
 function GameController(
-    playerOneName = "ADMD",
-    playerTwoName = "Machine"
+    playerOneName = "Player1",
+    playerTwoName = "Player2"
     ) {
     const board = Gameboard();
 
@@ -110,18 +122,82 @@ function GameController(
     console.log(`${getActivePlayer().name}'s turn.`);
     };
 
-    const playRound = (row, column) => {
-        // Place a token for the current player
-        console.log(
-        `Dropping ${getActivePlayer().name}'s token into column ${column}...`
-        );
-        board.placeToken(row, column, getActivePlayer().token);
+    let gameOver = false;
 
-        /*  This is where we would check for a winner and handle that logic,
-            such as a win message. */
+    /*  This is where we would check for a winner and handle that logic,
+    such as a win message. */
+    const checkWinner = () => {
+        const boardState = board.getBoard().map(row => row.map(cell => cell.getValue()));
+        const winPatterns = [
+            // Rows
+            [[0, 0], [0, 1], [0, 2]],
+            [[1, 0], [1, 1], [1, 2]],
+            [[2, 0], [2, 1], [2, 2]],
+            // Columns
+            [[0, 0], [1, 0], [2, 0]],
+            [[0, 1], [1, 1], [2, 1]],
+            [[0, 2], [1, 2], [2, 2]],
+            // Diagonals
+            [[0, 0], [1, 1], [2, 2]],
+            [[0, 2], [1, 1], [2, 0]]
+        ];
+
+        for (const pattern of winPatterns) {
+            const [a, b, c] = pattern;
+            const valA = boardState[a[0]][a[1]];
+            const valB = boardState[b[0]][b[1]];
+            const valC = boardState[c[0]][c[1]];
+            if (valA !== 0 && valA === valB && valB === valC) {
+                return true;
+            }
+        }
+        return false;
+    };
+
+        const playRound = (row, column) => {
+        if (gameOver) {
+            console.log("Game is already over!");
+            return "Game over";
+        }
+
+        // Save activePlayer in as stable variable
+        const currentPlayer = getActivePlayer(); 
+
+        // Place a token for the current player
+        console.log(`${currentPlayer.name} places token at (${row}, ${column})...`);
+
+        const moveSuccess = board.placeToken(row, column, currentPlayer.token);
+        if (!moveSuccess) {
+            return "Cell already taken!";
+        }
+
+        if (checkWinner()) {
+            board.printBoard();
+            // Round finished
+            console.log(`${currentPlayer.name} wins!`);
+            gameOver = true;
+            return `${currentPlayer.name} wins!`;
+        }
+
+        // Tie logic
+        const boardState = board.getBoard().map(row => row.map(cell => cell.getValue()));
+        const isBoardFull = boardState.every(row => row.every(cell => cell !== 0));
+        if (isBoardFull) {
+            board.printBoard();
+            console.log("It's a tie!");
+            gameOver = true;
+            return "It's a tie!";
+        }
 
         // Switch player turn
         switchPlayerTurn();
+        return null;
+    };
+
+    const resetGame = () => {
+        board.resetBoard();
+        gameOver = false;
+        activePlayer = players[0];
         printNewRound();
     };
 
@@ -132,8 +208,102 @@ function GameController(
     // getActivePlayer for the UI version
     return {
         playRound,
-        getActivePlayer
+        getActivePlayer,
+        // UI render
+        getBoard: board.getBoard,
+        // Preventing input after game has finished
+        isGameOver: () => gameOver,
+        resetGame,
     };
 }
 
-const game = GameController();
+function ScreenController() {
+    let game;
+
+    const playerTurnDiv = document.querySelector('.turn');
+    const boardDiv = document.querySelector('.gameboard');
+    const startBtn = document.getElementById('startBtn');
+    const player1Input = document.getElementById('player1');
+    const player2Input = document.getElementById('player2');
+
+    function initGame() {
+        const player1Name = player1Input.value.trim() || "Player 1";
+        const player2Name = player2Input.value.trim() || "Player 2";
+
+        game = GameController(player1Name, player2Name);
+
+        updateScreen();
+    }
+
+    const updateScreen = () => {
+        // clears the gameboard
+        boardDiv.textContent = "";
+
+        // get the newest version of the board and player turn
+        const board = game.getBoard();
+        const activePlayer = game.getActivePlayer();
+
+        // Display player's turn
+        playerTurnDiv.textContent = game.isGameOver()
+            ? playerTurnDiv.textContent // Keep winner text
+            : `${activePlayer.name}'s turn...`;
+
+        // Render board squares
+        board.forEach((row, rowIndex) => {
+            row.forEach((cell, colIndex) => {
+                const cellButton = document.createElement("button");
+                cellButton.classList.add("cell");
+                cellButton.dataset.row = rowIndex;
+                cellButton.dataset.column = colIndex;
+
+                const value = cell.getValue();
+                cellButton.textContent = value === 1 ? "X" : value === 2 ? "O" : "";
+
+                // Disable button if already played
+                if (game.isGameOver()) {
+                    cellButton.disabled = true;
+                }
+
+                boardDiv.appendChild(cellButton);
+            });
+        });
+    };
+
+    // Add event listener for the board
+    function clickHandlerBoard(e) {
+        if (game.isGameOver()) return;
+
+        const row = e.target.dataset.row;
+        const column = e.target.dataset.column;
+
+        if (row === undefined || column === undefined) return;
+
+        const result = game.playRound(parseInt(row), parseInt(column));
+        console.log("RESULT:", result); // <- Add this line for debugging
+
+        // Show error message if cell was already taken
+        if (result === "Cell already taken!") {
+            playerTurnDiv.textContent = result;
+            setTimeout(() => {
+                playerTurnDiv.textContent = `${game.getActivePlayer().name}'s turn...`;
+            }, 1000);
+            return; // Skip updateScreen for invalid move
+        }
+
+        // Update the board only for valid moves
+        updateScreen();
+
+        // Show winner or tie
+        if (result) {
+            playerTurnDiv.textContent = result;
+        }
+    }
+
+    boardDiv.addEventListener("click", clickHandlerBoard);
+    startBtn.addEventListener("click", initGame);
+
+    // Initial render
+    initGame();
+};
+
+ScreenController();

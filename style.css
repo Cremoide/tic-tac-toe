@@ -1,0 +1,146 @@
+*,
+*::before,
+*::after {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html {
+    text-align: center;
+}
+
+body {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 94px 0;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    font-weight: 700;
+    padding: 0 16px;
+}
+
+button {
+    color: black;
+    font-size: 32px;
+    border-radius: 8px;
+    border: 2px solid black;
+    outline: none;
+    cursor: pointer;
+}
+
+button:hover {
+    transition: all .5s linear;
+    background: white
+}
+
+/* Gameboard */
+
+.container {
+    background-color: gray;
+    border: 5px solid black;
+    border-radius: 18px;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.game-setup {
+    margin-top: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.game-setup button {
+    margin-top: 10px;
+    --bg: #000;
+    --hover-bg: #ffffff;
+    --hover-text: #000;
+    color: #fff;
+    cursor: pointer;
+    border: 1px solid var(--bg);
+    border-radius: 4px;
+    padding: 0.8em 2em;
+    background: var(--bg);
+    transition: 0.2s;
+}
+
+.game-setup button:hover {
+    color: var(--hover-text);
+    transform: translate(-0.25rem, -0.25rem);
+    background: var(--hover-bg);
+    box-shadow: 0.25rem 0.25rem var(--bg);
+}
+
+.game-setup button:active {
+    transform: translate(0);
+    box-shadow: none;
+}
+
+.turn {
+    color: black;
+    border-radius: 18px;
+    padding: 12px;
+}
+
+.gameboard {
+    display: grid;
+    grid-template-columns: repeat(3, 100px);
+    grid-template-rows: repeat(3, 100px);
+    gap: 5px;
+}
+
+.cell {
+    font-size: 3rem;
+    font-weight: bold;
+    background: #eee;
+    border: 1px solid #ccc;
+    cursor: pointer;
+}
+
+.cell:disabled {
+    background-color: #ccc;
+    color: #444;
+    cursor: not-allowed;
+}
+
+/* Header */
+
+.header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding-bottom: 12px;
+}
+
+.header h1 {
+    font-size: 31px;
+    margin: 0;
+}
+
+.header small {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* Display */
+
+.centered-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+}
+
+.footer {
+    font-weight: 500;
+    position: fixed;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    text-align: center;
+    padding-bottom: 12px;
+}

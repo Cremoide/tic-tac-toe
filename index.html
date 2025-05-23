@@ -4,12 +4,39 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width">
-    <title>Connect Four Console</title>
+    <title>❌ Tic-Tac-Toe ⭕️</title>
     <link rel="stylesheet" href="style.css"/>
 </head>
 
 <body>
-    <script src="script.js"></script>
+    <main class="centered-wrapper">
+        <section class="header">
+            <h1>Tic-Tac-Toe</h1>           
+            <small>You know, it's a classic!</small>
+        </section>
+        
+        <section>         
+            <div class="turn"></div>
+            <div class="container">
+                <div class="gameboard"></div>
+            </div>
+            <div class="game-setup">
+                <div>
+                    <input id="player1" placeholder="Player 1" />
+                    <input id="player2" placeholder="Player 2" />
+                </div>
+                <div>
+                    <button id="startBtn">Start / Restart Game</button>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <div class="footer center">
+        <small>Trust the process.</small>
+    </div>
+
+    <script src="script.js" defer></script>
 </body>
 
 </html>
